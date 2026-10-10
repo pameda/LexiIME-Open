@@ -1,0 +1,21 @@
+# LexiIME-Open 原创示例词库 v0.1 — 尚未进行专业语言审校
+# 汉字	分音节拼音	五笔86（可空）	英语	日语	西班牙语	频率	领域
+学习	xue xi	ipnu	to study; to learn	学ぶ	estudiar; aprender	1000	学习
+学	xue	ipbf	to study	学ぶ	estudiar	1000	学习
+习	xi	nud	to practice	習う	practicar	1000	学习
+英语	ying yu		English	英語	inglés	1000	学习
+日语	ri yu		Japanese	日本語	japonés	1000	学习
+西班牙语	xi ban ya yu		Spanish	スペイン語	español	1000	学习
+语言	yu yan		language	言語	idioma	1000	学习
+词汇	ci hui		vocabulary	語彙	vocabulario	1000	学习
+记忆	ji yi		memory; to memorize	記憶	memoria	1000	学习
+阅读	yue du		reading	読書	lectura	1000	学习
+练习	lian xi		practice	練習	práctica	1000	学习
+老师	lao shi		teacher	先生	profesor	1000	学习
+学生	xue sheng		student	学生	estudiante	1000	学习
+问题	wen ti		question; problem	質問; 問題	pregunta; problema	1000	学习
+答案	da an		answer	答え	respuesta	1000	学习
+学校	xue xiao		school	学校	escuela	1000	学习
+大学	da xue		university	大学	universidad	1000	学习
+书	shu		book	本	libro	1000	学习
+我喜欢学习英语	wo xi huan xue xi ying yu		I like learning English.	英語を学ぶのが好きです。	Me gusta aprender inglés.	1000	学习

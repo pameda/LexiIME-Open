@@ -1,0 +1,17 @@
+LIBRARY LexiCore
+EXPORTS
+lexi_create
+lexi_destroy
+lexi_load
+lexi_load_layout
+lexi_load_phrases
+lexi_set_fuzzy
+lexi_set_tools
+lexi_history
+lexi_record_selection
+lexi_clear_history
+lexi_query
+lexi_error
+lexi_count
+lexi_candidate_count
+lexi_candidate_field

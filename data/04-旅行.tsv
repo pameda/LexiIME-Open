@@ -1,0 +1,18 @@
+# LexiIME-Open 原创示例词库 v0.1 — 尚未进行专业语言审校
+# 汉字	分音节拼音	五笔86（可空）	英语	日语	西班牙语	频率	领域
+旅行	lv xing		travel	旅行	viaje	1000	旅行
+酒店	jiu dian		hotel	ホテル	hotel	1000	旅行
+车站	che zhan		station	駅	estación	1000	旅行
+机场	ji chang		airport	空港	aeropuerto	1000	旅行
+地图	di tu		map	地図	mapa	1000	旅行
+方向	fang xiang		direction	方向	dirección	1000	旅行
+左边	zuo bian		left side	左側	izquierda	1000	旅行
+右边	you bian		right side	右側	derecha	1000	旅行
+价格	jia ge		price	価格	precio	1000	旅行
+多少钱	duo shao qian		how much	いくら	cuánto cuesta	1000	旅行
+餐厅	can ting		restaurant	レストラン	restaurante	1000	旅行
+早餐	zao can		breakfast	朝食	desayuno	1000	旅行
+午餐	wu can		lunch	昼食	almuerzo	1000	旅行
+晚餐	wan can		dinner	夕食	cena	1000	旅行
+帮助	bang zhu		help	助け	ayuda	1000	旅行
+请	qing		please	どうぞ; 〜してください	por favor	1000	旅行

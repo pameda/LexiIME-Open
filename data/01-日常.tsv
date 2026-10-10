@@ -1,0 +1,49 @@
+# LexiIME-Open 原创示例词库 v0.1 — 尚未进行专业语言审校
+# 汉字	分音节拼音	五笔86（可空）	英语	日语	西班牙语	频率	领域
+我	wo	trnt	I; me	私	yo	1000	日常
+你	ni	wqiy	you	あなた	tú	1000	日常
+好	hao	vbg	good	良い	bueno	1000	日常
+你好	ni hao	wqvb	hello	こんにちは	hola	1000	日常
+谢谢	xie xie		thank you	ありがとう	gracias	1000	日常
+再见	zai jian		goodbye	さようなら	adiós	1000	日常
+是	shi	jghu	to be	〜です	ser	1000	日常
+的	de	rqyy	possessive particle	〜の	de	1000	日常
+们	men		plural suffix	〜たち	sufijo plural	1000	日常
+我们	wo men		we; us	私たち	nosotros	1000	日常
+他们	ta men		they; them	彼ら	ellos	1000	日常
+这	zhe		this	これ	esto	1000	日常
+那	na		that	それ	eso	1000	日常
+有	you		to have	ある; いる	tener	1000	日常
+不	bu		not	〜ない	no	1000	日常
+在	zai		at; in	〜に	en	1000	日常
+和	he		and	〜と	y	1000	日常
+喜欢	xi huan		to like	好き	gustar	1000	日常
+想	xiang		to want; to think	〜したい; 思う	querer; pensar	1000	日常
+去	qu		to go	行く	ir	1000	日常
+来	lai		to come	来る	venir	1000	日常
+吃	chi		to eat	食べる	comer	1000	日常
+喝	he		to drink	飲む	beber	1000	日常
+水	shui	iiii	water	水	agua	1000	日常
+茶	cha		tea	お茶	té	1000	日常
+咖啡	ka fei		coffee	コーヒー	café	1000	日常
+朋友	peng you		friend	友達	amigo	1000	日常
+家	jia		home; family	家; 家族	casa; familia	1000	日常
+今天	jin tian		today	今日	hoy	1000	日常
+明天	ming tian		tomorrow	明日	mañana	1000	日常
+早上	zao shang		morning	朝	mañana	1000	日常
+晚上	wan shang		evening	夜	noche	1000	日常
+时间	shi jian		time	時間	tiempo	1000	日常
+天气	tian qi		weather	天気	tiempo meteorológico	1000	日常
+开心	kai xin		happy	うれしい	feliz	1000	日常
+可以	ke yi		can; may	できる	poder	1000	日常
+没有	mei you		not have	ない	no tener	1000	日常
+什么	shen me		what	何	qué	1000	日常
+为什么	wei shen me		why	なぜ	por qué	1000	日常
+怎么	zen me		how	どう	cómo	1000	日常
+知道	zhi dao		to know	知っている	saber	1000	日常
+看到	kan dao		to see	見える	ver	1000	日常
+中国	zhong guo	khlg	China	中国	China	1000	日常
+中文	zhong wen		Chinese language	中国語	chino	1000	日常
+北京	bei jing		Beijing	北京	Pekín	1000	日常
+西安	xi an		Xi'an	西安	Xi'an	1000	日常
+先	xian		first	先に	primero	1000	日常
