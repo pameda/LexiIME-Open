@@ -4,7 +4,7 @@
 
 原创的 Win/Mac 外语学习输入法开发项目：在候选词旁查看英语、日语、西班牙语释义，支持本地输入偏好和可选个人 API。**当前是开发预览，尚未达到双平台安装即用。**
 
-[源码](https://github.com/pameda/LexiIME-Open) · [开发版下载](https://github.com/pameda/LexiIME-Open/releases/tag/v0.1.1-open.1) · [验收边界](docs/VERIFICATION.md) · [贡献说明](CONTRIBUTING.md)
+[源码](https://github.com/pameda/LexiIME-Open) · [开发版下载](https://github.com/pameda/LexiIME-Open/releases/tag/v0.1.1-open.2) · [验收边界](docs/VERIFICATION.md) · [贡献说明](CONTRIBUTING.md)
 
 ## 当前功能
 

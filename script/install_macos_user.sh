@@ -16,5 +16,13 @@ ditto --noextattr --noqtn dist/LexiIME-Open.app "$SETTINGS_TARGET"
 ditto --noextattr --noqtn 'dist/LexiIME-Open Input.app' "$INPUT_TARGET"
 codesign --verify --deep --strict "$SETTINGS_TARGET"
 codesign --verify --deep --strict "$INPUT_TARGET"
-build/tisctl register-enable "$INPUT_TARGET"
-echo 'Installed in the current user account; the original input source remains selected.'
+if ! build/tisctl register-enable "$INPUT_TARGET"; then
+  echo '启用请求尚未确认，正在独立进程中再次核对。' >&2
+fi
+if build/tisctl verify-enabled local.inputmethod.lexiime.open; then
+  echo '组件已安装，系统输入源已回读确认启用；尚需验证实际切换和打字。'
+else
+  echo '组件已复制，但系统输入源启用未通过。它现在还不能作为系统输入法使用。' >&2
+  echo '设置与应用内试用：~/Applications/LexiIME-Open.app；请查看 docs/MACOS-RELEASE.md。' >&2
+  exit 1
+fi

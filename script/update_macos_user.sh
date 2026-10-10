@@ -15,5 +15,13 @@ ditto --noextattr --noqtn dist/LexiIME-Open.app "$SETTINGS_TARGET"
 ditto --noextattr --noqtn 'dist/LexiIME-Open Input.app' "$INPUT_TARGET"
 codesign --verify --deep --strict "$SETTINGS_TARGET"
 codesign --verify --deep --strict "$INPUT_TARGET"
-build/tisctl register-enable "$INPUT_TARGET"
-echo 'Updated local development components; previous files preserved in build/system-test.'
+if ! build/tisctl register-enable "$INPUT_TARGET"; then
+  echo '启用请求尚未确认，正在独立进程中再次核对。' >&2
+fi
+if build/tisctl verify-enabled local.inputmethod.lexiime.open; then
+  echo '组件已更新，系统输入源已回读确认启用；实际切换和打字仍需验证。'
+else
+  echo '组件已更新并保留备份，但系统输入源启用未通过，尚不能作为系统输入法使用。' >&2
+  echo "原组件备份：$BACKUP" >&2
+  exit 1
+fi

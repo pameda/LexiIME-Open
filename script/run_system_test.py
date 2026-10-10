@@ -1,6 +1,6 @@
 """Authorized native UI test confined to a disposable LexiIME-Open document.
-The passive fixture never posts events itself. The trusted caller sends only to
-its PID and refuses to type after focus moves. No mic, API or real credentials.
+The passive fixture never posts events itself. The trusted caller uses the system keyboard path only while the
+test app is foreground, assigns its PID, and refuses to type after focus moves. No mic, API or real credentials.
 """
 import ctypes
 import json

@@ -21,6 +21,21 @@ static void output(id value) {
     NSData* data=[NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingPrettyPrinted error:nil];
     fwrite(data.bytes,1,data.length,stdout);fputc('\n',stdout);
 }
+static BOOL enabledForSelection(NSArray* sources) {
+    BOOL parentEnabled=NO, usable=NO, hasModes=NO;
+    for(NSDictionary* source in sources) {
+        if(![source[@"id"] isKindOfClass:NSString.class]
+           || ![source[@"type"] isKindOfClass:NSString.class]
+           || ![source[@"category"] isEqual:(__bridge NSString*)kTISCategoryKeyboardInputSource])return NO;
+        BOOL enabled=[source[@"enabled"] isEqual:@YES];
+        BOOL selectable=[source[@"selectable"] isEqual:@YES];
+        if([source[@"type"] isEqual:(__bridge NSString*)kTISTypeKeyboardInputMethodModeEnabled]) {
+            hasModes=YES;parentEnabled=enabled;
+        }
+        usable=usable || (enabled && selectable);
+    }
+    return usable && (!hasModes || parentEnabled);
+}
 static void settle(void) {
     NSDate* end=[NSDate dateWithTimeIntervalSinceNow:3.0];
     while([end timeIntervalSinceNow]>0) {
@@ -32,6 +47,17 @@ int main(int argc,const char**argv) { @autoreleasepool {
     NSApplicationLoad();
     if(argc<2)return 2;
     NSString* command=@(argv[1]);
+    if([command isEqual:@"verify-enabled"] && argc==3) {
+        NSDictionary* filter=@{(__bridge NSString*)kTISPropertyBundleID:@(argv[2])};
+        CFArrayRef list=TISCreateInputSourceList((__bridge CFDictionaryRef)filter,true);
+        NSMutableArray* matches=[NSMutableArray array];
+        if(list) {
+            for(CFIndex i=0;i<CFArrayGetCount(list);++i)[matches addObject:record((TISInputSourceRef)CFArrayGetValueAtIndex(list,i))];
+            CFRelease(list);
+        }
+        BOOL verified=enabledForSelection(matches);
+        output(@{@"operation":command,@"verified":@(verified),@"sources":matches});return verified?0:1;
+    }
     if([command isEqual:@"current"]) {
         TISInputSourceRef source=TISCopyCurrentKeyboardInputSource();
         if(!source)return 1;output(record(source));CFRelease(source);return 0;
@@ -61,7 +87,11 @@ int main(int argc,const char**argv) { @autoreleasepool {
             if([prop(source,kTISPropertyBundleID) isEqual:bundleID]) [matches addObject:record(source)];
         }
         if(list)CFRelease(list);
-        output(@{@"operation":command,@"status":@(status),@"sources":matches});return status==noErr?0:1;
+        BOOL verified=status==noErr && matches.count>0;
+        if([command isEqual:@"register-enable"])verified=verified && enabledForSelection(matches);
+        NSMutableDictionary* result=[@{@"operation":command,@"status":@(status),@"sources":matches,@"verified":@(verified)} mutableCopy];
+        if(!verified)result[@"error"]=@"The input source was not verified as enabled. Registration return codes alone do not mean it is usable.";
+        output(result);return verified?0:1;
     }
     CFArrayRef sources=TISCreateInputSourceList(NULL,true);
     if(!sources)return 1;

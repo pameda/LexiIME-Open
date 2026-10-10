@@ -92,13 +92,13 @@ int main(int argc,const char** argv) { @autoreleasepool {
         int code=atoi(argv[3]);if(code<0||code>127){CFRelease(element);return 2;}
         CGEventFlags flags=strtoull(argv[4],NULL,10);
         CGEventRef down=CGEventCreateKeyboardEvent(NULL,(CGKeyCode)code,true),up=CGEventCreateKeyboardEvent(NULL,(CGKeyCode)code,false);
-        NSDictionary* ascii=@{@0:@"a",@1:@"s",@2:@"d",@3:@"f",@4:@"h",@5:@"g",@6:@"z",@7:@"x",@8:@"c",@9:@"v",@11:@"b",@12:@"q",@13:@"w",@14:@"e",@15:@"r",@16:@"y",@17:@"t",@18:@"1",@19:@"2",@20:@"3",@21:@"4",@22:@"6",@23:@"5",@24:@"=",@25:@"9",@26:@"7",@27:@"-",@28:@"8",@29:@"0",@31:@"o",@32:@"u",@34:@"i",@35:@"p",@36:@"\r",@37:@"l",@38:@"j",@40:@"k",@41:@";",@43:@",",@44:@"/",@45:@"n",@46:@"m",@47:@".",@49:@" ",@51:@"\b",@53:@"\x1b"};
-        NSString* character=ascii[@(code)];if(character){UniChar value=[character characterAtIndex:0];CGEventKeyboardSetUnicodeString(down,1,&value);CGEventKeyboardSetUnicodeString(up,1,&value);}
+        // Unicode payloads and direct PID delivery bypass the active IME.
+        // Use the system input path only after the test app foreground guard.
         CGEventSetFlags(down,flags);CGEventSetFlags(up,0);
         if(code==56 || code==60){CGEventSetType(down,kCGEventFlagsChanged);CGEventSetType(up,kCGEventFlagsChanged);}
         CGEventSetIntegerValueField(down,kCGEventTargetUnixProcessID,app.processIdentifier);CGEventSetIntegerValueField(up,kCGEventTargetUnixProcessID,app.processIdentifier);
-        CGEventPostToPid(app.processIdentifier,down);[NSThread sleepForTimeInterval:0.08];CGEventPostToPid(app.processIdentifier,up);
-        [NSThread sleepForTimeInterval:0.4];CFRelease(down);CFRelease(up);emit(@{@"postedToTestPID":@(app.processIdentifier)});
+        CGEventPost(kCGHIDEventTap,down);[NSThread sleepForTimeInterval:0.08];CGEventPost(kCGHIDEventTap,up);
+        [NSThread sleepForTimeInterval:0.4];CFRelease(down);CFRelease(up);emit(@{@"postedWhileTestPIDForeground":@(app.processIdentifier)});
     } else if([command isEqual:@"focus"] && argc==4 && [@(argv[2]) isEqual:@"local.lexiime.open.systemtest"]) {
         AXUIElementRef target=match(element,@(argv[3]),0);if(!target){CFRelease(element);return 1;}
         [app activateWithOptions:0];AXError error=AXUIElementSetAttributeValue(target,kAXFocusedAttribute,kCFBooleanTrue);CFRelease(target);emit(@{@"status":@(error)});
