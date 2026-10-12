@@ -35,18 +35,20 @@ struct InputAvailability: Equatable {
         let candidates=[fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Input Methods/LexiIME-Open Input.app"),URL(fileURLWithPath:"/Library/Input Methods/LexiIME-Open Input.app")]
         let installed=candidates.contains { fm.fileExists(atPath:$0.appendingPathComponent("Contents/Info.plist").path) }
         let bundleID="local.inputmethod.lexiime.open"
+        let modeID=bundleID+".pinyin"
         let filter=[kTISPropertyBundleID as String:bundleID] as CFDictionary
-        var recognized=false, enabled=false
+        var recognized=false, enabled=false, parentEnabled=false
         if let list=TISCreateInputSourceList(filter,true)?.takeRetainedValue() as? [TISInputSource] {
             for source in list {
-                let valid=string(source,kTISPropertyInputSourceID)==bundleID && string(source,kTISPropertyInputSourceCategory)==(kTISCategoryKeyboardInputSource as String)
+                if string(source,kTISPropertyInputSourceID)==bundleID { parentEnabled=boolean(source,kTISPropertyInputSourceIsEnabled) }
+                let valid=string(source,kTISPropertyInputSourceID)==modeID && boolean(source,kTISPropertyInputSourceIsSelectCapable) && string(source,kTISPropertyInputSourceCategory)==(kTISCategoryKeyboardInputSource as String)
                 recognized = recognized || valid
                 enabled = enabled || (valid && boolean(source,kTISPropertyInputSourceIsEnabled))
             }
         }
         let current=TISCopyCurrentKeyboardInputSource()?.takeRetainedValue()
-        let currentIsLexi=current.map { string($0,kTISPropertyInputSourceID)==bundleID } ?? false
-        return evaluate(installed:installed,recognized:recognized,enabled:enabled,currentIsLexi:currentIsLexi)
+        let currentIsLexi=current.map { string($0,kTISPropertyInputSourceID)==modeID } ?? false
+        return evaluate(installed:installed,recognized:recognized,enabled:enabled && parentEnabled,currentIsLexi:currentIsLexi)
     }
     private static func string(_ source:TISInputSource,_ property:CFString) -> String? {
         guard let value=TISGetInputSourceProperty(source,property) else {return nil}

@@ -64,10 +64,10 @@ static void pump(double seconds) {
     if(parent){probe[@"enableParent"]=@(TISEnableInputSource(parent));CFRelease(parent);pump(2.0);}
     parent=findSource(@"local.inputmethod.lexiime.open");
     if(parent){probe[@"parentEnabled"]=(__bridge NSNumber*)TISGetInputSourceProperty(parent,kTISPropertyInputSourceIsEnabled);CFRelease(parent);}
-    TISInputSourceRef source=findSource(@"local.inputmethod.lexiime.open");
+    TISInputSourceRef source=findSource(@"local.inputmethod.lexiime.open.pinyin");
     if(source){probe[@"enableSource"]=@(TISEnableInputSource(source));pump(0.5);probe[@"select"]=@(TISSelectInputSource(source));CFRelease(source);pump(1.0);}
     TISInputSourceRef current=TISCopyCurrentKeyboardInputSource();probe[@"selected"]=sourceID(current);if(current)CFRelease(current);
-    if(![probe[@"selected"] isEqual:@"local.inputmethod.lexiime.open"] && before)TISSelectInputSource(before);
+    if(![probe[@"selected"] isEqual:@"local.inputmethod.lexiime.open.pinyin"] && before)TISSelectInputSource(before);
     if(before)CFRelease(before);
     NSURL* url=[[[NSBundle mainBundle].bundleURL URLByDeletingLastPathComponent] URLByAppendingPathComponent:@"system-test/probe-input.json"];
     [[NSJSONSerialization dataWithJSONObject:probe options:NSJSONWritingPrettyPrinted error:nil] writeToURL:url options:NSDataWritingAtomic error:nil];

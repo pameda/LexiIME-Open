@@ -12,7 +12,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/system-test'
 APP = 'local.lexiime.open.systemtest'
-TARGET = 'local.inputmethod.lexiime.open'
+TARGET = 'local.inputmethod.lexiime.open.pinyin'
 CONFIG = pathlib.Path.home() / 'Library/Application Support/LexiIME-Open/settings.json'
 KEYS = dict(zip('asdfhgzxcvbqwertyouipljknm', [0,1,2,3,4,5,6,7,8,9,11,12,13,14,15,17,16,31,32,34,35,37,38,40,45,46]))
 

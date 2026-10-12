@@ -11,7 +11,7 @@ def call(*args):
 before=call('current')
 assert 'id' in before, 'Cannot snapshot current input source safely'
 result={'before':before}
-target='local.inputmethod.lexiime.open'
+target='local.inputmethod.lexiime.open.pinyin'
 try:
     result['select']=call('select',target)
     result['selected']=call('current')

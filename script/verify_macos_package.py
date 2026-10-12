@@ -36,14 +36,29 @@ with tempfile.TemporaryDirectory(prefix='pkg-verify.',dir=ROOT/'build') as tempo
         assert (packaged/'Contents/Resources'/info['CFBundleIconFile']).is_file(),'Application icon missing'
         assert info['NSMicrophoneUsageDescription'] and info['NSSpeechRecognitionUsageDescription']
         if name=='LexiIME-Open Input':
-            assert 'ComponentInputModeDict' not in info
+            assert 'TISInputSourceID' not in info,'Parent must not shadow the selectable mode'
+            modeID=info['CFBundleIdentifier']+'.pinyin'
+            modes=info['ComponentInputModeDict']
+            assert modes['tsVisibleInputModeOrderedArrayKey']==[modeID]
+            mode=modes['tsInputModeListKey'][modeID]
+            assert mode['TISInputSourceID']==modeID and mode['tsInputModeIsVisibleKey']
+            assert mode['tsInputModeScriptKey']=='smSimpChinese'
+            for key in ['tsInputModeMenuIconFileKey','tsInputModeAlternateMenuIconFileKey','tsInputModePaletteIconFileKey']:
+                assert mode[key]=='menu.pdf' and (packaged/'Contents/Resources'/mode[key]).is_file()
+            for locale in ['en','zh-Hans']:
+                strings=(packaged/'Contents/Resources'/f'{locale}.lproj/InfoPlist.strings').read_text()
+                assert f'"{modeID}"' in strings,'Localized mode name missing'
             assert info['InputMethodConnectionName']==info['CFBundleIdentifier']+'_Connection'
             assert info['InputMethodServerControllerClass']=='LexiInputController'
         subprocess.run(['/usr/bin/codesign','--verify','--deep','--strict',str(packaged)],check=True)
         record={'app':name,'build':info['CFBundleVersion'],'sha256':digest(packaged/executable),'signatureVerified':True}
         if args.installed:
             assert digest(target/executable)==record['sha256'],'Installed executable mismatch'
+            assert plistlib.loads((target/'Contents/Info.plist').read_bytes())==info,'Installed metadata mismatch'
+            for icon in ['menu.tiff','menu.pdf','AppIcon.icns','InputIcon.icns']:
+                assert digest(target/'Contents/Resources'/icon)==digest(built/'Contents/Resources'/icon),'Installed icon mismatch'
             record['installedBinaryMatches']=True
+            record['installedMetadataAndIconsMatch']=True
         records.append(record)
     with zipfile.ZipFile(ROOT/f'dist/LexiIME-Open-macOS-{arch}-0.1.1-preview.zip') as archive:
         assert archive.testzip() is None
