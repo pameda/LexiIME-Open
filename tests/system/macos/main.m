@@ -59,7 +59,9 @@ static void pump(double seconds) {
     NSMutableDictionary* probe=[NSMutableDictionary dictionary];
     TISInputSourceRef before=TISCopyCurrentKeyboardInputSource();probe[@"before"]=sourceID(before);
     NSURL* input=[NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Input Methods/LexiIME-Open Input.app"] isDirectory:YES];
-    probe[@"register"]=@(TISRegisterInputSource((__bridge CFURLRef)input));
+    // Installation performs registration. Do not invalidate cached TIS mode
+    // metadata by re-registering in this GUI selection/typing fixture.
+    probe[@"installed"]=@([[NSFileManager defaultManager] fileExistsAtPath:input.path]);
     TISInputSourceRef parent=findSource(@"local.inputmethod.lexiime.open");
     if(parent){probe[@"enableParent"]=@(TISEnableInputSource(parent));CFRelease(parent);pump(2.0);}
     parent=findSource(@"local.inputmethod.lexiime.open");

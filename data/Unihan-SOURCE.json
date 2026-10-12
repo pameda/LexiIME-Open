@@ -1,0 +1,15 @@
+{
+  "source": "https://www.unicode.org/Public/18.0.0/ucd/Unihan.zip",
+  "license": "https://www.unicode.org/license.txt",
+  "unicodeVersion": "18.0.0",
+  "archiveSHA256": "4c93ea9c1f636451729a840978f1667a53886af37ba854fdcce109721c63d43e",
+  "entryCount": 6806,
+  "characterCount": 6740,
+  "derivedSHA256": "0f0736c6ab5a155fdbeed3f96af2933e6a23bc8f4d50c8c575fea653de81adc2",
+  "properties": [
+    "kGB0",
+    "kMandarin",
+    "kHanyuPinlu"
+  ],
+  "scope": "GB2312 characters; primary zh-Hans and attested kHanyuPinlu readings. No translations."
+}

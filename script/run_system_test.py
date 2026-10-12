@@ -80,7 +80,11 @@ def page_expected():
             assert core.lexi_load(engine,str(pack).encode())>0
         candidates=json.loads(core.lexi_query(engine,b'w',b'pinyin',b'en',1))
         assert len(candidates)>5
-        return candidates[5]['text']
+        request=json.dumps({'texts':[c['text'] for c in candidates],'preferredCount':5,'fontSize':17})
+        probe=subprocess.run([str(ROOT/'build/candidate-pages')],input=request,text=True,capture_output=True,check=True,timeout=10)
+        ranges=json.loads(probe.stdout)['pages']
+        assert len(ranges)>1,'Paging fixture needs multiple visible pages'
+        return candidates[ranges[1][0]]['text']
     finally:
         core.lexi_destroy(engine)
 
@@ -106,7 +110,7 @@ try:
         raise RuntimeError('Custom dictionaries present; use a clean test account for deterministic seed-only checks')
     keep_awake=subprocess.Popen(['/usr/bin/caffeinate','-di','-t','240'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     settings=json.loads(before) if before else {}
-    settings.update(language='en',mode='pinyin',correction=True,study=False,cloudEnabled=False,frequencyRanking=False,syncEnabled=False,disabledPacks=[],candidatePageSize=5,chinesePunctuation=True)
+    settings.update(language='en',mode='pinyin',correction=True,study=False,cloudEnabled=False,frequencyRanking=False,syncEnabled=False,disabledPacks=[],candidatePageSize=5,candidateFontSize=17,chinesePunctuation=True)
     save_config(json.dumps(settings,ensure_ascii=False).encode())
     subprocess.run(['pkill','-x','LexiSystemTest'],check=False)
     for filename in ['fixture-state.json','probe-input.json']:
@@ -123,26 +127,33 @@ try:
     calibration=state(lambda s:s['text']=='nihao')
     result['calibration']={'expected':'nihao','actual':calibration['text'],'keyEventsReceived':calibration['keyEventsReceived'],'passed':True}
     reset()
-    # Register and select in the fixture's GUI context, then read actual source.
-    # AXPress can time out while its synchronous diagnostic action is running.
+    # Select inside the foreground GUI document, without re-registering the
+    # installed component. A global source snapshot alone does not verify that
+    # this document's actual InputMethodKit session is active.
     result['probePress']=call('native-ax','press',APP,'lexi-probe-source',strict=False)
     deadline=time.monotonic()+12
     while not (OUT/'probe-input.json').exists() and time.monotonic()<deadline:
         time.sleep(.1)
-    result['registration']=json.loads((OUT/'probe-input.json').read_text())
+    result['selection']=json.loads((OUT/'probe-input.json').read_text())
     current=state()
     result['selectedInDocument']=current['source']
-    if current['source']!=TARGET or result['registration'].get('select')!=0:
-        raise RuntimeError('macOS did not enable/select LexiIME-Open; IME typing cases skipped')
+    if current['source']!=TARGET or result['selection'].get('select')!=0:
+        raise RuntimeError('macOS did not select LexiIME in the document; IME typing cases skipped')
     focus('lexi-test-document')
     def record(name,expected):
         time.sleep(.6)
         observed=state()
         result['cases'].append({'name':name,'expected':expected,'actual':observed['text'],'marked':observed['marked'],'source':observed['source'],'passed':observed['text']==expected and not observed['marked'] and observed['source']==TARGET})
-    for name,code,expected in [('full-pinyin','nihao','你好'),('initials','nh','你好'),('correction','nihoa','你好'),('sentence','woqubeijing','我去北京')]:
+    for name,code,expected in [('full-pinyin','nihao','你好'),('initials','nh','你好'),('correction','nihoa','你好'),('sentence','woqubeijing','我去北京'),('repair','xiufu','修复'),('icon','tubiao','图标'),('sync','tongbu','同步'),('new-sentence','shebeitubiao','设备图标'),('long-candidate','woxihuanxuexiyingyu','我喜欢学习英语')]:
         reset();type_text(code)
         if name=='full-pinyin':
             observed=state();result['compositionBeforeCommit']={'text':observed['text'],'marked':observed['marked']}
+        if os.environ.get('LEXI_CAPTURE_CANDIDATES')=='1' and name in ['repair','long-candidate']:
+            current=state()
+            if not current['active'] or not current['keyWindow'] or not current['marked'] or current['text']!=code:
+                raise RuntimeError('Candidate capture refused outside the active test document')
+            captured=subprocess.run([str(ROOT/'build/capture-candidate-panel'),str(OUT/(name+'-candidate.png'))],capture_output=True,text=True,timeout=15)
+            result.setdefault('candidateCaptures',[]).append({'case':name,'success':captured.returncode==0,'detail':captured.stdout.strip()})
         key(49);record(name,expected)
     reset();type_text('nihao');key(51);type_text('o');key(49);record('backspace','你好')
     reset();type_text('nihao');key(53);record('escape','')
@@ -192,5 +203,5 @@ finally:
         keep_awake.wait(timeout=5)
     (OUT/'ui-input.json').write_text(json.dumps(result,ensure_ascii=False,indent=2))
 print(json.dumps(result,ensure_ascii=False,indent=2))
-passed=not result.get('error') and len(result['cases'])==12 and all(x['passed'] for x in result['cases']) and result.get('compositionBeforeCommit',{}).get('marked') and all(result.get(k,{}).get('passed',False) for k in ['focusChange','secureField']) and result.get('restoreVerified') and result.get('preferencesRestored')
+passed=not result.get('error') and len(result['cases'])==17 and all(x['passed'] for x in result['cases']) and result.get('compositionBeforeCommit',{}).get('marked') and all(result.get(k,{}).get('passed',False) for k in ['focusChange','secureField']) and result.get('restoreVerified') and result.get('preferencesRestored')
 raise SystemExit(0 if passed else 1)

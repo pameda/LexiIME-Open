@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <utility>
 #include "../../core/lexi.h"
+#include "candidate_layout.h"
 
 // Original, minimal desktop TSF integration. Store/UWP and secure-field behavior
 // must pass the documented Windows release gates before distribution.
@@ -144,16 +145,27 @@ struct Service final:ITfTextInputProcessorEx,ITfKeyEventSink,ITfCompositionSink 
     STDMETHODIMP OnKeyDown(ITfContext* c,WPARAM key,LPARAM,BOOL* eaten)override;
     STDMETHODIMP OnCompositionTerminated(TfEditCookie,ITfComposition* ended)override{if(ended==composition){release(composition);release(activeContext);buffer.clear();if(popup)ShowWindow(popup,SW_HIDE);}return S_OK;}
     HRESULT edit(ITfContext* context,TfEditCookie cookie,WPARAM key);
+    std::vector<LexiCandidateLayout::Range> candidatePages()const {
+        std::vector<std::wstring> words;
+        for(int i=0;i<lexi_candidate_count(engine);++i)words.push_back(wide(lexi_candidate_field(engine,i,0)));
+        return LexiCandidateLayout::pages(words);
+    }
     void show(ITfContext* c,TfEditCookie cookie,ITfRange* range){
         if(buffer.empty()){if(popup)ShowWindow(popup,SW_HIDE);return;}
         std::wstring text=wide(buffer.c_str())+L"\r\n";
-        int count=lexi_candidate_count(engine),start=selected/5*5,end=(std::min)(count,start+5);for(int i=start;i<end;++i){text+=(i==selected?L"› ":L"  ")+std::to_wstring(i-start+1)+L"  "+wide(lexi_candidate_field(engine,i,0))+L"   "+wide(lexi_candidate_field(engine,i,1))+L"\r\n";}
-        if(count>5)text+=std::to_wstring(start+1)+L"–"+std::to_wstring(end)+L" / "+std::to_wstring(count)+(expression()?L"  PgUp / PgDn 翻页":L"  - / = 翻页");
+        int count=lexi_candidate_count(engine);auto visible=LexiCandidateLayout::range(candidatePages(),selected);
+        int start=visible.first,end=visible.second;
+        for(int i=start;i<end;++i) {
+            text+=(i==selected?L"› ":L"  ")+std::to_wstring(i-start+1)+L"  "+LexiCandidateLayout::compact(wide(lexi_candidate_field(engine,i,0)),28)+L"\r\n";
+            auto gloss=LexiCandidateLayout::compact(wide(lexi_candidate_field(engine,i,1)),end-start==1?64:32);
+            text+=L"     "+gloss+L"\r\n";
+        }
+        if(count>end-start)text+=std::to_wstring(start+1)+L"–"+std::to_wstring(end)+L" / "+std::to_wstring(count)+(expression()?L"  PgUp / PgDn 翻页":L"  - / = 翻页");
         if(count==0)text+=L"未收录 · Enter 输出编码";
         if(!popup){popup=CreateWindowExW(WS_EX_TOPMOST|WS_EX_NOACTIVATE|WS_EX_TOOLWINDOW,L"STATIC",L"",WS_POPUP|WS_BORDER|SS_LEFT,0,0,500,100,nullptr,nullptr,module,nullptr);if(popup)SendMessageW(popup,WM_SETFONT,reinterpret_cast<WPARAM>(GetStockObject(DEFAULT_GUI_FONT)),TRUE);}
         RECT caret{};BOOL clipped=FALSE;ITfContextView* view=nullptr;if(SUCCEEDED(c->GetActiveView(&view))){view->GetTextExt(cookie,range,&caret,&clipped);view->Release();}
         MONITORINFO info{sizeof(MONITORINFO)};GetMonitorInfoW(MonitorFromRect(&caret,MONITOR_DEFAULTTONEAREST),&info);
-        int height=28*(end-start+3),x=caret.left,y=caret.bottom+4;x=(std::max)(info.rcWork.left,(std::min)(x,info.rcWork.right-500));y=(std::max)(info.rcWork.top,(std::min)(y,info.rcWork.bottom-height));
+        int height=24*(2*(end-start)+3),x=caret.left,y=caret.bottom+4;x=(std::max)(info.rcWork.left,(std::min)(x,info.rcWork.right-500));y=(std::max)(info.rcWork.top,(std::min)(y,info.rcWork.bottom-height));
         SetWindowTextW(popup,text.c_str());SetWindowPos(popup,HWND_TOPMOST,x,y,500,height,SWP_NOACTIVATE|SWP_SHOWWINDOW);
     }
 };
@@ -219,10 +231,12 @@ HRESULT Service::edit(ITfContext* context,TfEditCookie cookie,WPARAM key){
     }
     else if(key==VK_UP)selected=(std::max)(0,selected-1);
     else if(key==VK_DOWN)selected=(std::min)((std::max)(0,lexi_candidate_count(engine)-1),selected+1);
-    else if(key==VK_PRIOR||key==VK_OEM_MINUS)selected=(std::max)(0,selected/5-1)*5;
-    else if(key==VK_NEXT||key==VK_OEM_PLUS)selected=(std::min)((std::max)(0,(lexi_candidate_count(engine)-1)/5),selected/5+1)*5;
+    else if(key==VK_PRIOR||key==VK_OEM_MINUS)selected=LexiCandidateLayout::next(candidatePages(),selected,-1);
+    else if(key==VK_NEXT||key==VK_OEM_PLUS)selected=LexiCandidateLayout::next(candidatePages(),selected,1);
     else if(key==VK_SPACE||(key>='1'&&key<='5')){
-        int pick=key==VK_SPACE?selected:selected/5*5+int(key-'1');if(pick<0||pick>=lexi_candidate_count(engine)){if(key!=VK_SPACE){sel.range->Release();return S_FALSE;}}
+        auto visible=LexiCandidateLayout::range(candidatePages(),selected);
+        if(key!=VK_SPACE&&int(key-'1')>=visible.second-visible.first){sel.range->Release();return S_FALSE;}
+        int pick=key==VK_SPACE?selected:visible.first+int(key-'1');if(pick<0||pick>=lexi_candidate_count(engine)){if(key!=VK_SPACE){sel.range->Release();return S_FALSE;}}
         else{next=lexi_candidate_field(engine,pick,0);chosenText=next;
             std::string kind=lexi_candidate_field(engine,pick,2);
             chosen=kind!="tool"&&kind!="emoji"&&kind!="segments";

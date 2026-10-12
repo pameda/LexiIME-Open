@@ -1,4 +1,5 @@
 #include "../core/lexi.h"
+#include "../platform/windows/candidate_layout.h"
 #include <cassert>
 #include <chrono>
 #include <ctime>
@@ -31,6 +32,27 @@ int main(int argc,char**argv){
     for(auto& f:std::filesystem::directory_iterator(root/"data"))if(f.path().extension()==".tsv"&&f.path().filename().string()[0]>='0'&&f.path().filename().string()[0]<='9')assert(lexi_load(e,f.path().string().c_str())>0);
     int checks=0;
     auto has=[&](const char* code,const char* mode,const char* lang,const char* expected,int correction=1){std::string actual=lexi_query(e,code,mode,lang,correction);if(actual.find(expected)==std::string::npos){std::cerr<<code<<": "<<actual<<" expected "<<expected<<"\n";std::abort();}++checks;};
+    lexi_query(e,"xiufu","pinyin","en",0);
+    assert(std::string(lexi_candidate_field(e,0,0))=="修复");++checks;
+    assert(std::string(lexi_candidate_field(e,0,1)).find("repair")!=std::string::npos);++checks;
+    has("xf","initials","en","修复");has("xiuf","pinyin","en","修复");
+    has("tubiao","pinyin","en","图标");has("gengxin","pinyin","en","更新");
+    has("tongbu","pinyin","en","同步");has("xiufuwenti","pinyin","en","修复问题");
+    has("huang","pinyin","en","黄");has("lv","pinyin","en","吕");
+    has("shebeitubiao","pinyin","off","设备图标");
+    lexi_query(e,"lv","pinyin","en",0);
+    for(int i=0;i<lexi_candidate_count(e);++i) {
+        if(std::string(lexi_candidate_field(e,i,0))=="吕") {
+            assert(std::string(lexi_candidate_field(e,i,1)).empty());++checks;
+        }
+    }
+    auto windowsPages=LexiCandidateLayout::pages({L"修复",L"图标",L"我喜欢学习英语",L"同步",L"设置"});
+    assert((windowsPages==std::vector<LexiCandidateLayout::Range>{{0,2},{2,3},{3,5}}));++checks;
+    assert(LexiCandidateLayout::next(windowsPages,1,1)==2);++checks;
+    assert(LexiCandidateLayout::next(windowsPages,3,-1)==2);++checks;
+    assert(LexiCandidateLayout::compact(L"  repair\n and\tfix  ",32)==L"repair and fix");++checks;
+    std::wstring surrogate={wchar_t(0xd83d),wchar_t(0xde42),L'x'};
+    assert(LexiCandidateLayout::compact(surrogate,2)==L"…");++checks;
     has("nihao","pinyin","en","hello");has("NIHAO","pinyin","ja","こんにちは");has("nihao","pinyin","es","hola");
     has("nh","pinyin","en","你好");has("nh","initials","en","你好");has("nihoa","pinyin","en","correction");
     has("nihao","pinyin","off","\"gloss\":\"\"");has("woxihuanxuexiyingyu","pinyin","en","I like learning English.");
@@ -435,6 +457,6 @@ int main(int argc,char**argv){
 #endif
     lexi_destroy(history);lexi_destroy(reloaded);
     auto start=std::chrono::steady_clock::now();for(int i=0;i<1000;++i)lexi_query(e,"woxihuanxuexiyingyu","pinyin","en",1);
-    std::cout<<checks<<" behavior checks passed; "<<lexi_count(e)<<" entries; long-input mean "<<std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count()/1000<<" ms (seed pack only)\n";
+    std::cout<<checks<<" behavior checks passed; "<<lexi_count(e)<<" entries; long-input mean "<<std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count()/1000<<" ms (bundled packs plus test imports)\n";
     lexi_destroy(e);std::filesystem::remove(bad);std::filesystem::remove(invalid);std::filesystem::remove(pages);
 }

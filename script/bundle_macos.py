@@ -9,7 +9,7 @@ for ime,name,bundle in [(False,'LexiIME-Open','local.lexiime.open.settings'),(Tr
     shutil.copytree(root/'data',target/'Resources'/'data',dirs_exist_ok=True)
     for document in ['LICENSE','THIRD_PARTY_NOTICES.md']:
         shutil.copy2(root/document,target/'Resources'/document)
-    info=dict(CFBundleExecutable='LexiIME-Open',CFBundleIdentifier=bundle,CFBundleName=name,CFBundleDisplayName='词伴开源版',CFBundlePackageType='APPL',CFBundleVersion='4',CFBundleShortVersionString='0.1.1',CFBundleInfoDictionaryVersion='6.0',CFBundleSupportedPlatforms=['MacOSX'],LSMinimumSystemVersion='13.0',NSPrincipalClass='NSApplication',NSHighResolutionCapable=True)
+    info=dict(CFBundleExecutable='LexiIME-Open',CFBundleIdentifier=bundle,CFBundleName=name,CFBundleDisplayName='词伴开源版',CFBundlePackageType='APPL',CFBundleVersion='5',CFBundleShortVersionString='0.1.1',CFBundleInfoDictionaryVersion='6.0',CFBundleSupportedPlatforms=['MacOSX'],LSMinimumSystemVersion='13.0',NSPrincipalClass='NSApplication',NSHighResolutionCapable=True)
     for icon in ['menu.tiff','menu.pdf','AppIcon.icns','InputIcon.icns']:
         shutil.copy2(root/'build/icons'/icon,target/'Resources'/icon)
     info['CFBundleIconFile']='InputIcon.icns' if ime else 'AppIcon.icns'

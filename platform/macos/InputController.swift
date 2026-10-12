@@ -12,36 +12,61 @@ struct CandidatePanelView: View {
     let fontSize: Int
     let choose: (Int) -> Void
     let preference: (Int,Bool) -> Void
+    private var single: Bool {range.count==1}
+    private var showGloss: Bool {range.contains(where:{ !items[$0].gloss.isEmpty })}
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(code).font(.system(.callout, design: .monospaced)).foregroundStyle(.secondary).padding(.horizontal, 8)
-            if items.isEmpty { Text("未收录 · Enter 输出编码").foregroundStyle(.secondary).padding(8) }
-            ForEach(Array(range), id: \.self) { i in
-                let item=items[i]
-                Button { choose(i) } label: {
-                    HStack(alignment: .top, spacing: 12) {
-                        Text("\(i-range.lowerBound+1)").foregroundStyle(.secondary).frame(width: 12)
-                        Text(item.text).font(.system(size: CGFloat(fontSize), weight: .medium)).frame(minWidth: 72, alignment: .leading)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.gloss).lineLimit(2)
-                            if ["segments","ai","correction","fuzzy","phrase","tool","emoji"].contains(item.kind) { Text(item.label).font(.caption2).foregroundStyle(.secondary) }
-                        }.foregroundStyle(.secondary)
-                        Spacer(minLength: 0)
-                    }.padding(8).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(selected == i ? Color.teal.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 7))
-                }.buttonStyle(.plain)
-                .contextMenu {
-                    Button("固定为此编码首选") { preference(i,false) }
-                    Button("隐藏此编码的候选") { preference(i,true) }
+            Text(code).font(.system(size:12,design:.monospaced)).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.head).padding(.horizontal,8)
+            if items.isEmpty { Text("未收录 · Enter 输出编码").font(.callout).foregroundStyle(.secondary).padding(8) }
+            HStack(alignment: .top, spacing: CandidateLayout.spacing) {
+                ForEach(Array(range), id: \.self) { i in
+                    let item=items[i]
+                    let active=selected==i
+                    let width=CandidateLayout.cellWidth(item.text,fontSize:fontSize)
+                    Button {choose(i)} label: {
+                        VStack(alignment:.leading,spacing:4) {
+                            HStack(alignment:.firstTextBaseline,spacing:4) {
+                                Text("\(i-range.lowerBound+1)").font(.system(size:11)).opacity(0.7)
+                                Text(item.text).font(.system(size:CGFloat(fontSize),weight:.medium))
+                                    .lineLimit(single ? 2:1).truncationMode(.tail)
+                            }
+                            if showGloss {
+                                Text(item.gloss.isEmpty ? " ":(item.kind=="ai" ? "AI · ":"")+CandidateLayout.gloss(item.gloss,single:single))
+                                    .font(.system(size:12)).lineLimit(1).truncationMode(.tail)
+                                    .foregroundStyle(active ? Color.white.opacity(0.88):Color.secondary)
+                                    .accessibilityIdentifier("lexi-candidate-translation-\(i)")
+                                    .accessibilityHidden(item.gloss.isEmpty)
+                            }
+                        }.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,8).padding(.vertical,7)
+                            .frame(width:width,alignment:.leading)
+                            .foregroundStyle(active ? Color.white:Color.primary)
+                            .background(active ? Color.accentColor:Color.clear,in:RoundedRectangle(cornerRadius:10))
+                    }.buttonStyle(.plain)
+                    .accessibilityLabel("\(i-range.lowerBound+1) \(item.text) \(item.gloss)")
+                    .accessibilityIdentifier("lexi-candidate-\(i)")
+                    .help(item.gloss.isEmpty ? item.text:item.text+"\n"+item.gloss)
+                    .contextMenu {
+                        Button("固定为此编码首选") {preference(i,false)}
+                        Button("隐藏此编码的候选") {preference(i,true)}
+                    }
                 }
             }
-            if items.count>range.count { Text("\(range.lowerBound+1)–\(range.upperBound) / \(items.count) · − / = 翻页").font(.caption2).foregroundStyle(.secondary).padding(.horizontal,8) }
-        }.padding(8).frame(width: 430).background(.regularMaterial)
+            if items.count>range.count {
+                Text("\(range.lowerBound+1)–\(range.upperBound) / \(items.count) · − / = 翻页")
+                    .font(.system(size:10)).foregroundStyle(.secondary).padding(.horizontal,8)
+            }
+        }.padding(8).fixedSize(horizontal:true,vertical:true)
+            .background(.regularMaterial,in:RoundedRectangle(cornerRadius:14))
+            .overlay(RoundedRectangle(cornerRadius:14).stroke(Color.primary.opacity(0.10),lineWidth:0.5))
     }
 }
 @objc(LexiInputController)
 final class LexiInputController: IMKInputController {
     private let logger=Logger(subsystem:"local.lexiime.open",category:"controller")
+    private var pages: [Range<Int>] {
+        CandidateLayout.pages(texts:items.map(\.text),preferredCount:Store.shared.preferences.pageSize,fontSize:Store.shared.preferences.fontSize)
+    }
     private var buffer = ""
     private var items: [Candidate] = []
     private var selected = 0
@@ -95,8 +120,8 @@ final class LexiInputController: IMKInputController {
             case 49: choose(selected, client: client);return true
             case 125: selected=min(max(0,items.count-1),selected+1);show(client);return true
             case 126: selected=max(0,selected-1);show(client);return true
-            case 116: selected=Typing.nextPage(count:items.count,selected:selected,size:Store.shared.preferences.pageSize,direction:-1);show(client);return true
-            case 121: selected=Typing.nextPage(count:items.count,selected:selected,size:Store.shared.preferences.pageSize,direction:1);show(client);return true
+            case 116: selected=CandidateLayout.next(pages:pages,selected:selected,direction:-1);show(client);return true
+            case 121: selected=CandidateLayout.next(pages:pages,selected:selected,direction:1);show(client);return true
             case 123,124: commit(buffer, client: client);return false
             default: break
             }
@@ -105,9 +130,9 @@ final class LexiInputController: IMKInputController {
                     if items.first?.kind == "tool" {choose(0,client:client)}
                     return true
                 }
-                selected=Typing.nextPage(count:items.count,selected:selected,size:Store.shared.preferences.pageSize,direction:event.characters=="-" ? -1 : 1);show(client);return true
+                selected=CandidateLayout.next(pages:pages,selected:selected,direction:event.characters=="-" ? -1 : 1);show(client);return true
             }
-            let range=Typing.pageRange(count:items.count,selected:selected,size:Store.shared.preferences.pageSize)
+            let range=CandidateLayout.range(pages:pages,selected:selected)
             if let s=event.characters, let n=Int(s), n>0, n<=range.count { choose(range.lowerBound+n-1,client:client);return true }
         }
         guard let text=event.characters, text.count==1, let scalar=text.unicodeScalars.first else {
@@ -134,11 +159,12 @@ final class LexiInputController: IMKInputController {
     private func show(_ client: IMKTextInput) {
         if panel == nil {
             let p=NSPanel(contentRect:NSRect(x:0,y:0,width:430,height:100),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            p.title="词伴候选";p.identifier=NSUserInterfaceItemIdentifier("lexi-candidate-panel")
             p.level = .popUpMenu;p.hasShadow=true;p.isOpaque=false;p.backgroundColor = .clear;p.hidesOnDeactivate=false
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];panel=p
         }
         guard let panel else {return}
-        let range=Typing.pageRange(count:items.count,selected:selected,size:Store.shared.preferences.pageSize)
+        let range=CandidateLayout.range(pages:pages,selected:selected)
         let shownCode=buffer, token=generation
         let view=NSHostingView(rootView:CandidatePanelView(code:buffer,items:items,selected:selected,range:range,fontSize:Store.shared.preferences.fontSize,choose:{ [weak self] i in
             guard let self, let current=self.client() else{return};self.choose(i,client:current)

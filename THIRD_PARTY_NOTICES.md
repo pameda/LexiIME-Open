@@ -1,13 +1,13 @@
 # 来源与许可证
 
-本仓库的原创代码、项目文档、生成的菜单图标和自编演示词库以根目录 [MIT LICENSE](LICENSE) 发布。当前没有 vendored 第三方源码、模型、商业词库、图片或字体。许可证中的年份是本项目发布年份。
+本仓库的原创代码、项目文档、生成的菜单图标和自编演示词库以根目录 [MIT LICENSE](LICENSE) 发布。当前没有vendored第三方源码、模型、商业词库、图片或字体；新增的Unicode衍生基础单字数据单独保留Unicode License V3，不改标为本项目MIT原创内容。许可证中的年份是本项目发布年份。
 
 ## 原创内容
 
 | 内容 | 来源与范围 |
 |---|---|
 | core、platform、script、tests | 本项目原创 C++、Swift/AppKit/SwiftUI 与 C#/.NET 实现 |
-| data/01–04 | 自编日常、学习、工作、旅行词，共100条三语演示记录；没有专业审校 |
+| data/01–05 | 自编100条三语演示词及288条常用词补充；没有专业审校，未提供的译词留空 |
 | data/import-example.tsv | 自编 TSV 导入示例 |
 | data/layout.tsv | 10条演示双拼映射，不是主流方案的完整码表 |
 | 应用与输入法菜单图标 | render_icons.swift 原创键盘几何图形，生成透明单色与绿色应用图标；没有复用微信图标或字体 |
@@ -22,3 +22,9 @@
 ## 功能参考
 
 [青简](https://github.com/qingjian-team/qingjian)、[微信输入法](https://z.weixin.qq.com/)、[Typeless](https://www.typeless.com/)和[腾讯 Chatterfly](https://chatterfly.tencent.com/)仅作为公开功能行为参考；没有复用其代码、词库、模型、品牌或媒体资产。MIT 仅覆盖本项目有权发布的原创内容，不授予参考产品的商标或其他权利。
+
+## Unicode基础单字
+
+`data/06-基础单字.tsv`来自Unicode官方Unihan 18.0.0数据，仅提取GB2312范围的kMandarin及kHanyuPinlu读音。共有6806条补充读音、6740个不同汉字；已存在的原创词条、译词和五笔编码不会被覆盖。其余基础汉字已在原创包中。当前基础包不是全Unicode汉字、多音字完全集或通用中文语言模型。
+
+官方来源：https://www.unicode.org/Public/18.0.0/ucd/Unihan.zip 。许可：https://www.unicode.org/license.txt （Unicode License V3）。完整版权和许可随数据放在`data/unicode-license.txt`，构建时随应用一同复制；下载摘要、派生摘要和转换范围在`data/Unihan-SOURCE.json`。转换由本项目原创`script/import_unihan.py`执行，构建时不联网、不运行第三方下载程序、不下载青简/微信词库。无词义关联时外语列保持空白。

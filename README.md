@@ -4,7 +4,7 @@
 
 原创的 Win/Mac 外语学习输入法开发项目：在候选词旁查看英语、日语、西班牙语释义，支持本地输入偏好和可选个人 API。**当前是开发预览，尚未达到双平台安装即用。**
 
-[源码](https://github.com/pameda/LexiIME-Open) · [开发版下载](https://github.com/pameda/LexiIME-Open/releases/tag/v0.1.1-open.2) · [验收边界](docs/VERIFICATION.md) · [贡献说明](CONTRIBUTING.md)
+[源码](https://github.com/pameda/LexiIME-Open) · [开发版下载](https://github.com/pameda/LexiIME-Open/releases/tag/v0.1.1-open.5) · [验收边界](docs/VERIFICATION.md) · [贡献说明](CONTRIBUTING.md)
 
 ## 当前功能
 
@@ -14,7 +14,7 @@
 - 默认关闭的个人词库/常用语同步：选择已有 iCloud Drive、群晖 Synology Drive 或其他本机同步文件夹。冲突由用户选择；不登录云账号，词频与密钥不参与同步。
 - Mac Apple 本地语音预览与个人术语；可主动调用个人 HTTPS API 整理、翻译、润色、摘要或问 AI。Windows 语音源码使用系统录音与个人转写 API。
 
-自编词库共100条三语演示记录，尚未专业审校；双拼表仅10条映射，五笔为示例记录。词典组句不是成熟语言模型，语境释义不保证准确。完整能力与缺口见 [PRODUCT.md](docs/PRODUCT.md)。
+内置100条自编三语演示词、288条原创常用词补充和6806条Unicode基础单字读音，三语释义尚未专业审校；双拼表仅10条映射，五笔为示例记录。词典组句不是成熟语言模型，语境释义不保证准确。完整能力与缺口见 [PRODUCT.md](docs/PRODUCT.md)。
 
 ## Mac 开发预览
 
@@ -64,3 +64,7 @@ Mac 数据位于 ~/Library/Application Support/LexiIME-Open/，密钥使用独�
 ## 许可证与来源
 
 原创代码、文档、自编演示词库和生成菜单图标按 [MIT](LICENSE) 发布。来源与平台依赖见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。只参考青简、微信输入法、Typeless 与腾讯 Chatterfly 的公开功能，没有复用其受限代码、词库、模型或品牌素材。
+
+Unicode衍生基础单字词库单独遵循Unicode License V3，来源与校验见 `data/Unihan-SOURCE.json`；它不是本项目原创MIT内容。常用词中没有对应外语释义的字段保持空值。
+
+候选释义显示在字词下方，过长时省略；长词自动单独占一页，继续翻页可选择其他候选。词库新增修复、图标、更新、同步等常用词及Unicode基础单字，空译词仍保持空值。

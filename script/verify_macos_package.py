@@ -34,6 +34,11 @@ with tempfile.TemporaryDirectory(prefix='pkg-verify.',dir=ROOT/'build') as tempo
         for icon in ['menu.tiff','menu.pdf','AppIcon.icns','InputIcon.icns']:
             assert digest(packaged/'Contents/Resources'/icon)==digest(built/'Contents/Resources'/icon),'Icon resource mismatch'
         assert (packaged/'Contents/Resources'/info['CFBundleIconFile']).is_file(),'Application icon missing'
+        for data in (built/'Contents/Resources/data').iterdir():
+            if data.is_file():
+                assert digest(packaged/'Contents/Resources/data'/data.name)==digest(data),'Packaged dictionary/license mismatch'
+                if args.installed:
+                    assert digest(target/'Contents/Resources/data'/data.name)==digest(data),'Installed dictionary/license mismatch'
         assert info['NSMicrophoneUsageDescription'] and info['NSSpeechRecognitionUsageDescription']
         if name=='LexiIME-Open Input':
             assert 'TISInputSourceID' not in info,'Parent must not shadow the selectable mode'

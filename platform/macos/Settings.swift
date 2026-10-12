@@ -140,6 +140,7 @@ struct SettingsView: View {
                     Picker("每页候选数",selection:Binding(get:{ store.preferences.pageSize },set:{ store.preferences.candidatePageSize=$0;store.save() })) {
                         Text("5 个").tag(5);Text("9 个").tag(9)
                     }
+                    Text("译词显示在候选下方，过长时省略；长词或整句单独占一页，可继续翻页选择。").font(.caption).foregroundStyle(.secondary)
                     Picker("候选文字大小",selection:Binding(get:{store.preferences.fontSize},set:{store.preferences.candidateFontSize=$0;store.save()})) {
                         Text("小 · 14").tag(14);Text("标准 · 17").tag(17);Text("大 · 20").tag(20);Text("特大 · 24").tag(24)
                     }

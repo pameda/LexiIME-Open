@@ -9,6 +9,8 @@ xcrun clang -fobjc-arc -framework AppKit -framework Carbon -framework Applicatio
 xcrun clang -fobjc-arc -framework AppKit -framework Carbon -framework ApplicationServices script/native_ax.m -o build/native-ax
 xcrun clang -fobjc-arc -framework AppKit -framework Carbon script/tisctl.m -o build/tisctl
 xcrun clang++ -std=c++17 -O2 -dynamiclib core/lexi.cpp -o build/libLexiCore-test.dylib
+xcrun swiftc -swift-version 5 -module-cache-path "$PWD/build/module-cache" platform/macos/CandidateLayout.swift tests/system/macos/candidate_pages.swift -o build/candidate-pages
+xcrun swiftc -swift-version 5 -parse-as-library -module-cache-path "$PWD/build/module-cache" script/capture_candidate_panel.swift -o build/capture-candidate-panel
 python3 - <<'PY'
 import plistlib
 from pathlib import Path
