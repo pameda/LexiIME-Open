@@ -9,6 +9,10 @@ pkill -f "$PWD/dist/LexiIME-Open Input.app/Contents/MacOS/LexiIME-Open" >/dev/nu
 ARCH="${ARCH:-$(uname -m)}"
 xcrun clang++ -std=c++17 -O2 -arch "$ARCH" -mmacosx-version-min=13.0 -c core/lexi.cpp -o "build/core-$ARCH.o"
 xcrun swiftc -swift-version 5 -O -target "$ARCH-apple-macosx13.0" -module-cache-path "$PWD/build/module-cache" -import-objc-header core/lexi.h platform/macos/*.swift "build/core-$ARCH.o" -lc++ -framework AppKit -framework SwiftUI -framework InputMethodKit -framework Carbon -framework Security -framework Speech -framework AVFoundation -o "build/LexiIME-Open-$ARCH"
+xcrun swiftc -swift-version 5 -module-cache-path "$PWD/build/module-cache" script/render_icons.swift -o build/render-icons
+build/render-icons build/icons
+/usr/bin/iconutil -c icns build/icons/AppIcon.iconset -o build/icons/AppIcon.icns
+/usr/bin/iconutil -c icns build/icons/InputIcon.iconset -o build/icons/InputIcon.icns
 python3 script/bundle_macos.py "$ARCH"
 codesign --force --sign - dist/LexiIME-Open.app
 codesign --force --sign - 'dist/LexiIME-Open Input.app'

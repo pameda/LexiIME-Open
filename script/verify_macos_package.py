@@ -31,6 +31,9 @@ with tempfile.TemporaryDirectory(prefix='pkg-verify.',dir=ROOT/'build') as tempo
         assert info==plistlib.loads((built/'Contents/Info.plist').read_bytes()),'Plist mismatch'
         for document in ['LICENSE','THIRD_PARTY_NOTICES.md']:
             assert (packaged/'Contents/Resources'/document).read_bytes()==(ROOT/document).read_bytes(),'Missing or changed license notice'
+        for icon in ['menu.tiff','menu.pdf','AppIcon.icns','InputIcon.icns']:
+            assert digest(packaged/'Contents/Resources'/icon)==digest(built/'Contents/Resources'/icon),'Icon resource mismatch'
+        assert (packaged/'Contents/Resources'/info['CFBundleIconFile']).is_file(),'Application icon missing'
         assert info['NSMicrophoneUsageDescription'] and info['NSSpeechRecognitionUsageDescription']
         if name=='LexiIME-Open Input':
             assert 'ComponentInputModeDict' not in info
